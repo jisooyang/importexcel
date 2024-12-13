@@ -6,6 +6,7 @@ const app = express();
 const port = 3000;
 const __dirname = 'D:/private/import';
 
+
 app.get('/', (req, res) => {
   try {
     const workbook = xlsx.parse(fs.readFileSync(__dirname + '/import.xlsx'));
@@ -77,17 +78,51 @@ app.get('/', (req, res) => {
       "이용하신곳": "코원에너지서비스(주)-자동이체용",
       "사업자번호": "",
       "과세유형": "일반과세자", */
-      for (let i = 1; i < array.length; i++) {
-        const row = array[i];  
-        if (row['과세유형'] === '면세사업자') {
-          taxExemptData.push(row);
-        } else {
-          regularData.push(row);
-        }
-      }
+      const groupedByCard = regularData.reduce((acc, current) => {
+        const cardNumber = String(current['카드번호'] || '').trim(); 
+        if (!cardNumber) return acc;
+         
+        if (!acc[cardNumber]) {
+          acc[cardNumber] = [];
+        } 
+        let obj = {...current};
+        delete obj['카드번호'];
+        acc[cardNumber].push(obj); 
+
+        return acc;
+      }, {}); 
+      const cardGroupArray = Object.entries(groupedByCard).map(([cardNumber, items]) => {
+        // Group items by business registration number
+        const groupedByBusiness = items.reduce((acc, current) => {
+          const businessRegNum = String(current['사업자번호'] || '').trim();
+          
+          if (!businessRegNum) return acc;
+          
+          if (!acc[businessRegNum]) {
+            acc[businessRegNum] = [];
+          }
+          
+          acc[businessRegNum].push({...current});
+          
+          return acc;
+        }, {});
+        
+        const groupArray = Object.entries(groupedByBusiness).map(([businessRegNum, arr]) => ({
+          businessRegNum,
+          count: arr.length,
+          totalAmount: arr.reduce((acc, current) => acc + current['이용금액'], 0),
+          arr        
+        })); 
+        // Return the object with cardNumber and grouped business data
+        return {
+          cardNumber,
+          businesses: groupArray
+        };
+      });
+      
 
       res.json({ 
-        regularData,
+        'regularData': cardGroupArray,
         taxExemptData
       });
  
