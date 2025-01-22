@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import '../styles/Table.css';
 
 const TaxExemptTable = ({ taxExemptData, regularData }) => {
+  const [checkedRows, setCheckedRows] = useState({});
   return (
     <div className="table-container">
       {/* Regular Data Table */}
@@ -12,10 +13,11 @@ const TaxExemptTable = ({ taxExemptData, regularData }) => {
             <tr>
               <th>Card Number</th>
               <th>Business Number</th>
-              <th>Transaction Count</th>
+              <th>Cnt</th>{/* Transaction Count */}
               <th>Total Amount</th>
               <th>Details</th>
               <th>Show</th>
+              <th>Submitted</th>
             </tr>
           </thead>
           <tbody>
@@ -38,29 +40,35 @@ const TaxExemptTable = ({ taxExemptData, regularData }) => {
                       <button 
                         className="btn-view"
                         onClick={() => {
-                          const detailsDiv = document.getElementById(`details-${business.businessRegNum}`);
-                          if (detailsDiv) {
-                            detailsDiv.style.display = detailsDiv.style.display === 'none' ? 'block' : 'none';
-                          }
+                          console.log(business.arr);
                         }}
                       >
                         View Details
-                      </button>
+                      </button> 
                     </td>
-                    <td>
-                      <div 
-                        id={`details-${business.businessRegNum}`} 
-                        style={{display: 'none'}}
-                      >
-                        {business.arr.map((item, index) => (
-                          <div key={index}>
-                            <p>Date: {item.이용일자}</p>
-                            <p>Amount: ₩{item.이용금액.toLocaleString()}</p>
-                            <p>Location: {item.이용하신곳}</p>
-                            <hr/>
-                          </div>
-                        ))}
-                      </div>
+                    <td> 
+                        {(() => {
+                          const uniqueLocations = [...new Set(business.arr.map(item => item.이용하신곳))];
+                          if (uniqueLocations.length === 1) {
+                            return (
+                              <div>  {uniqueLocations[0]} </div>
+                            );
+                          } else {
+                            return business.arr.map((item, index) => (
+                              <div key={index}> {item.이용하신곳}  </div>
+                            ));
+                          }
+                        })()} 
+                    </td>
+                    <td data-label="Submitted" className="checkbox-container">
+                      <input 
+                        type="checkbox"
+                        className="custom-checkbox"
+                        onChange={(e) => {
+                          // Handle checkbox state change
+                          console.log(`Row ${cardGroup.cardNumber}-${business.businessRegNum} submitted: ${e.target.checked}`);
+                        }}
+                      />
                     </td>
                   </tr>
                 ))}
@@ -73,7 +81,7 @@ const TaxExemptTable = ({ taxExemptData, regularData }) => {
               <td>{regularData.reduce((sum, group) => 
                 sum + group.businesses.reduce((bSum, b) => bSum + b.count, 0), 0
               )}</td>
-              <td colSpan={2} className="amount">
+              <td colSpan={3} className="amount">
                 ₩{regularData.reduce((sum, group) => 
                   sum + group.businesses.reduce((bSum, b) => bSum + b.totalAmount, 0), 
                   0).toLocaleString()}
@@ -93,7 +101,7 @@ const TaxExemptTable = ({ taxExemptData, regularData }) => {
               <th>Business Number</th>
               <th>Amount</th>
               <th>Tax Type</th>
-              <th>Date</th>
+              <th>Location</th>
               <th>Sheet</th>
             </tr>
           </thead>
@@ -110,7 +118,7 @@ const TaxExemptTable = ({ taxExemptData, regularData }) => {
                     {item.과세유형}
                   </span>
                 </td>
-                <td data-label="Date">{item.이용일자}</td>
+                <td data-label="Location">{item.이용하신곳}</td>
                 <td data-label="Sheet">{item.sheetName}</td>
               </tr>
             ))}
@@ -119,7 +127,7 @@ const TaxExemptTable = ({ taxExemptData, regularData }) => {
             <tr>
               <td colSpan={2}>Total Tax Exempt Transactions:</td>
               <td colSpan={4} className="amount">
-                ₩{taxExemptData.reduce((sum, item) => sum + item.이용금액, 0).toLocaleString()}
+                {taxExemptData.reduce((sum, item) => sum + item.이용금액, 0).toLocaleString()}
               </td>
             </tr>
           </tfoot>
