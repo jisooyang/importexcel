@@ -429,7 +429,6 @@ tr {
 
 /* Checkbox container alignment */
 .checkbox-container {
-  display: flex;
   justify-content: center;
   align-items: center;
   padding: 8px;
@@ -475,4 +474,45 @@ tr {
 .export-btn::before {
   content: '📥';
   font-size: 16px;
+}
+
+/* Show column text styling */
+.location-text {
+  font-size: 12px;
+  color: #64748b;  /* Grey color */
+  line-height: 1.4;
+  margin: 2px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 250px;  /* Adjust based on your needs */
+}
+
+/* Container for multiple locations */
+.locations-container {
+  max-height: 80px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* Scrollbar for locations container */
+.locations-container::-webkit-scrollbar {
+  width: 4px;
+}
+
+.locations-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.locations-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 2px;
+}
+
+/* Single location styling */
+.single-location {
+  padding: 4px 8px;
+  background: #f8fafc;
+  border-radius: 4px;
+  margin: 2px 0;
 }

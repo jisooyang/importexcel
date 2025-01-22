@@ -131,9 +131,9 @@ const TaxExemptTable = ({ taxExemptData, regularData }) => {
               <th>Business Number</th>
               <th>Cnt</th>{/* Transaction Count */}
               <th>Total Amount</th>
-              <th>Details</th>
-              <th>Show</th>
               <th>Submitted</th>
+              <th>Show</th>
+              <th>Details</th>
             </tr>
           </thead>
           <tbody>
@@ -155,30 +155,6 @@ const TaxExemptTable = ({ taxExemptData, regularData }) => {
                     <td data-label="Business Number">{business.businessRegNum}</td>
                     <td data-label="Count" className="count-cell">{business.count}</td>
                     <td data-label="Amount" className="amount">{business.totalAmount}</td>
-                    <td data-label="Details"> 
-                      <button 
-                        className="btn-view"
-                        onClick={() => {
-                          console.log(business.arr);
-                        }}
-                      >
-                        View Details
-                      </button> 
-                    </td>
-                    <td> 
-                        {(() => {
-                          const uniqueLocations = [...new Set(business.arr.map(item => item.이용하신곳))];
-                          if (uniqueLocations.length === 1) {
-                            return (
-                              <div>  {uniqueLocations[0]} </div>
-                            );
-                          } else {
-                            return business.arr.map((item, index) => (
-                              <div key={index}> {item.이용하신곳}  </div>
-                            ));
-                          }
-                        })()} 
-                    </td>
                     <td data-label="Submitted" className="checkbox-container">
                       <input 
                         type="checkbox"
@@ -191,6 +167,38 @@ const TaxExemptTable = ({ taxExemptData, regularData }) => {
                           }));
                         }}
                       />
+                    </td>
+                    <td data-label="Show"> 
+                      {(() => {
+                        const uniqueLocations = [...new Set(business.arr.map(item => item.이용하신곳))];
+                        if (uniqueLocations.length === 1) {
+                          return (
+                            <div className="single-location">
+                              <span className="location-text">{uniqueLocations[0]}</span>
+                            </div>
+                          );
+                        } else {
+                          return (
+                            <div className="locations-container">
+                              {business.arr.map((item, index) => (
+                                <div key={index} className="single-location">
+                                  <span className="location-text">{item.이용하신곳}</span>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        }
+                      })()} 
+                    </td>
+                    <td data-label="Details"> 
+                      <button 
+                        className="btn-view"
+                        onClick={() => {
+                          console.log(business.arr);
+                        }}
+                      >
+                        View Details
+                      </button> 
                     </td>
                   </tr>
                 ))}
