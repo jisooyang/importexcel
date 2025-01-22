@@ -1,10 +1,126 @@
 import React, { useState } from 'react';
+import * as XLSX from 'xlsx';
 import '../styles/Table.css';
 
 const TaxExemptTable = ({ taxExemptData, regularData }) => {
   const [checkedRows, setCheckedRows] = useState({});
+    // Function to export regular data
+    const exportRegularData = () => {
+      // Transform data for Excel
+      const excelData = regularData.flatMap(cardGroup =>
+        cardGroup.businesses.map(business => ({
+          'Card Number': cardGroup.cardNumber,
+          'Business Number': business.businessRegNum,
+          'Transaction Count': business.count,
+          'Total Amount': business.totalAmount,
+          'Location': business.arr.map(item => item.이용하신곳).join(', '),
+          'Submitted': checkedRows[`${cardGroup.cardNumber}-${business.businessRegNum}`] ? 'Yes' : 'No'
+        }))
+      );
+  
+      // Create worksheet
+      const ws = XLSX.utils.json_to_sheet(excelData);
+  
+      // Set column widths
+      const colWidths = [
+        { wch: 15 }, // Card Number
+        { wch: 15 }, // Business Number
+        { wch: 10 }, // Transaction Count
+        { wch: 15 }, // Total Amount
+        { wch: 30 }, // Location
+        { wch: 10 }  // Submitted
+      ];
+      ws['!cols'] = colWidths;
+  
+      // Create workbook
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Regular Transactions");
+  
+      // Export file
+      XLSX.writeFile(wb, `Regular_Transactions_${new Date().toISOString().split('T')[0]}.xlsx`);
+    };
+  
+    // Function to export tax exempt data
+    const exportTaxExemptData = () => {
+      // Transform data for Excel
+      const excelData = taxExemptData.map(item => ({
+        'Card Number': item.카드번호,
+        'Business Number': item.사업자번호,
+        'Amount': item.이용금액,
+        'Tax Type': item.과세유형,
+        'Location': item.이용하신곳,
+        'Sheet': item.sheetName
+      }));
+  
+      // Create worksheet
+      const ws = XLSX.utils.json_to_sheet(excelData);
+  
+      // Set column widths
+      const colWidths = [
+        { wch: 15 }, // Card Number
+        { wch: 15 }, // Business Number
+        { wch: 15 }, // Amount
+        { wch: 15 }, // Tax Type
+        { wch: 30 }, // Location
+        { wch: 15 }  // Sheet
+      ];
+      ws['!cols'] = colWidths;
+  
+      // Create workbook
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Tax Exempt Transactions");
+  
+      // Export file
+      XLSX.writeFile(wb, `Tax_Exempt_Transactions_${new Date().toISOString().split('T')[0]}.xlsx`);
+    };
+  
+    // Function to export all data
+    const exportAllData = () => {
+      const wb = XLSX.utils.book_new();
+  
+      // Regular transactions sheet
+      const regularExcelData = regularData.flatMap(cardGroup =>
+        cardGroup.businesses.map(business => ({
+          'Card Number': cardGroup.cardNumber,
+          'Business Number': business.businessRegNum,
+          'Transaction Count': business.count,
+          'Total Amount': business.totalAmount,
+          'Location': business.arr.map(item => item.이용하신곳).join(', '),
+          'Submitted': checkedRows[`${cardGroup.cardNumber}-${business.businessRegNum}`] ? 'Yes' : 'No'
+        }))
+      );
+      const regularWs = XLSX.utils.json_to_sheet(regularExcelData);
+      XLSX.utils.book_append_sheet(wb, regularWs, "Regular Transactions");
+  
+      // Tax exempt transactions sheet
+      const taxExemptExcelData = taxExemptData.map(item => ({
+        'Card Number': item.카드번호,
+        'Business Number': item.사업자번호,
+        'Amount': item.이용금액,
+        'Tax Type': item.과세유형,
+        'Location': item.이용하신곳,
+        'Sheet': item.sheetName
+      }));
+      const taxExemptWs = XLSX.utils.json_to_sheet(taxExemptExcelData);
+      XLSX.utils.book_append_sheet(wb, taxExemptWs, "Tax Exempt Transactions");
+  
+      // Export file
+      XLSX.writeFile(wb, `All_Transactions_${new Date().toISOString().split('T')[0]}.xlsx`);
+    };
   return (
     <div className="table-container">
+         {/* Export Buttons */}
+         <div className="export-buttons">
+        <button className="export-btn" onClick={exportRegularData}>
+          Export Regular Data
+        </button>
+        <button className="export-btn" onClick={exportTaxExemptData}>
+          Export Tax Exempt Data
+        </button>
+        <button className="export-btn" onClick={exportAllData}>
+          Export All Data
+        </button>
+      </div>
       {/* Regular Data Table */}
       <div className="table-wrapper">
         <h3>Regular Transactions</h3>
@@ -24,7 +140,10 @@ const TaxExemptTable = ({ taxExemptData, regularData }) => {
             {regularData.map((cardGroup) => (
               <React.Fragment key={cardGroup.cardNumber}>
                 {cardGroup.businesses.map((business, index) => (
-                  <tr key={`${cardGroup.cardNumber}-${business.businessRegNum}`}>
+                  <tr 
+                    key={`${cardGroup.cardNumber}-${business.businessRegNum}`}
+                    className={checkedRows[`${cardGroup.cardNumber}-${business.businessRegNum}`] ? 'row-submitted' : ''}
+                  >
                     {index === 0 && (
                       <td
                         rowSpan={cardGroup.businesses.length}
@@ -64,9 +183,12 @@ const TaxExemptTable = ({ taxExemptData, regularData }) => {
                       <input 
                         type="checkbox"
                         className="custom-checkbox"
+                        checked={checkedRows[`${cardGroup.cardNumber}-${business.businessRegNum}`] || false}
                         onChange={(e) => {
-                          // Handle checkbox state change
-                          console.log(`Row ${cardGroup.cardNumber}-${business.businessRegNum} submitted: ${e.target.checked}`);
+                          setCheckedRows(prev => ({
+                            ...prev,
+                            [`${cardGroup.cardNumber}-${business.businessRegNum}`]: e.target.checked
+                          }));
                         }}
                       />
                     </td>
@@ -132,7 +254,7 @@ const TaxExemptTable = ({ taxExemptData, regularData }) => {
             </tr>
           </tfoot>
         </table>
-      </div>
+      </div>      
     </div>
   );
 };
