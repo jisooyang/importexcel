@@ -67,9 +67,10 @@ app.get('/', (req, res) => {
 
          */
       // Process data rows (skip header row)
-      const taxExemptTitles = ['공연']
-      for (let i = 1; i < array.length; i++) {
+      //const taxExemptTitles = ['공연']
+      for (let i = 0; i < array.length; i++) {
         const row = array[i];
+        if(i===array.length-1) console.log(row)
         if (!row || row.length === 0) continue;     
         row['sheetName'] = sheet.name;
         // Check tax type and separate data
